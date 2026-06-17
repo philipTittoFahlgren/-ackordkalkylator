@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<title>Ackordkalkylator</title>
+<style>
+body { font-family: Arial; max-width: 900px; margin: 20px auto; }
+input, button { padding: 8px; margin: 5px; }
+table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+th { background: #f4f4f4; }
+</style>
+</head>
+<body>
+
+<h2>Ackordkalkylator</h2>
+
+<label>Kvm: <input id="kvm" type="number"></label>
+<label>Pris per kvm: <input id="price" type="number" value="24"></label>
+
+<button onclick="addWorker()">Lägg till arbetare</button>
+<button onclick="calc()">Räkna</button>
+
+<table id="table">
+<thead>
+<tr>
+<th>Namn</th>
+<th>Timlön</th>
+<th>Timmar</th>
+<th>Manuell %</th>
+<th>Ej ackord</th>
+<th>Ta bort</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+
+<h3>Resultat</h3>
+<div id="result"></div>
+
+<script>
+function addWorker(){
+  let row = document.createElement("tr");
+  row.innerHTML = `
+    <td><input></td>
+    <td><input type="number"></td>
+    <td><input type="number"></td>
+    <td><input type="number"></td>
+    <td><input type="checkbox"></td>
+    <td><button onclick="this.parentNode.parentNode.remove()">X</button></td>
+  `;
+  document.querySelector("#table tbody").appendChild(row);
+}
+
+function calc(){
+  let rows = document.querySelectorAll("#table tbody tr");
+
+  let workers = [];
+  let totalHours = 0;
+
+  let kvm = Number(document.getElementById("kvm").value);
+  let price = Number(document.getElementById("price").value);
+
+  let overskott = kvm * price;
+
+  rows.forEach(r => {
+    let i = r.querySelectorAll("input");
+
+    let name = i[0].value;
+    let wage = Number(i[1].value);
+    let hours = Number(i[2].value);
+    let percent = Number(i[3].value);
+    let excluded = i[4].checked;
+
+    if(!excluded) totalHours += hours;
+
+    workers.push({name,wage,hours,percent,excluded});
+  });
+
+  let overskottPerHour = overskott / totalHours;
+
+  let autoBase = 0;
+  workers.forEach(w => {
+    if(!w.excluded && !w.percent){
+      autoBase += w.wage * w.hours;
+    }
+  });
+
+  let result = "<table><tr><th>Namn</th><th>Ackord</th><th>Total</th></tr>";
+
+  workers.forEach(w => {
+
+    if(w.excluded){
+      result += `<tr><td>${w.name}</td><td>0</td><td>${w.wage * w.hours}</td></tr>`;
+      return;
+    }
+
+    let share = w.percent > 0
+      ? w.percent / 100
+      : (w.wage * w.hours) / autoBase;
+
+    let ackord = overskottPerHour * share * w.hours;
+    let total = (w.wage * w.hours) + ackord;
+
+    result += `<tr>
+      <td>${w.name}</td>
+      <td>${ackord.toFixed(0)} kr</td>
+      <td>${total.toFixed(0)} kr</td>
+    </tr>`;
+  });
+
+  result += "</table>";
+
+  document.getElementById("result").innerHTML = result;
+}
+</script>
+
+</body>
+</html>
