@@ -1,5 +1,6 @@
 function addWorker(){
   let row = document.createElement("tr");
+
   row.innerHTML = `
     <td><input placeholder="Namn"></td>
     <td><input type="number" placeholder="Timlön"></td>
@@ -8,6 +9,7 @@ function addWorker(){
     <td><input type="checkbox"></td>
     <td><button onclick="this.parentNode.parentNode.remove()">X</button></td>
   `;
+
   document.querySelector("#table tbody").appendChild(row);
 }
 
@@ -29,6 +31,7 @@ function calc(){
   let overskott = kvm * price;
 
   rows.forEach(r => {
+
     let i = r.querySelectorAll("input");
 
     let name = i[0].value;
@@ -43,6 +46,11 @@ function calc(){
 
     workers.push({name,wage,hours,percent,excluded});
   });
+
+  if(totalHours === 0){
+    document.getElementById("result").innerHTML = "Inga timmar inlagda";
+    return;
+  }
 
   let overskottPerHour = overskott / totalHours;
 
